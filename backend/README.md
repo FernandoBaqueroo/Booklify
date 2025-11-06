@@ -26,14 +26,25 @@ Booklify API es una API REST construida con Node.js y Express que actúa como un
 
 ### Características Principales
 
+**Funcionalidades:**
 - ✅ Búsqueda general de libros
 - ✅ Búsqueda por autor
 - ✅ Búsqueda por categoría
 - ✅ Búsqueda por ISBN
 - ✅ Obtener libro por ID
 - ✅ Paginación de resultados
-- ✅ CORS habilitado
-- ✅ Manejo de errores robusto
+
+**Seguridad y Rendimiento (PROFESIONAL):**
+- 🔒 Helmet - Protección de headers HTTP
+- 🌐 CORS configurado con lista blanca
+- 🛡️ Rate Limiting (100 req/15min general, 30 req/min búsquedas)
+- ✅ Validación y sanitización de inputs (express-validator)
+- ⚡ Cache en memoria (Node-Cache) - Reduce llamadas a API externa
+- 📦 Compresión Gzip - Reduce tamaño de respuestas ~70%
+- 📊 Logging HTTP (Morgan)
+- ❤️ Health Check endpoint
+- 🚨 Manejo centralizado de errores
+- 🔄 Graceful shutdown
 
 ---
 
@@ -60,9 +71,24 @@ npm install
 ```
 
 Las dependencias instaladas son:
+
+**Core:**
 - `express`: Framework web para Node.js
 - `axios`: Cliente HTTP para realizar peticiones
 - `dotenv`: Gestión de variables de entorno
+
+**Seguridad:**
+- `helmet`: Protección de headers HTTP
+- `cors`: Control de orígenes permitidos
+- `express-validator`: Validación y sanitización de inputs
+- `express-rate-limit`: Prevención de abuso y DDoS
+
+**Rendimiento:**
+- `compression`: Compresión Gzip de respuestas
+- `node-cache`: Cache en memoria
+
+**Monitoreo:**
+- `morgan`: Logging HTTP
 
 ---
 
@@ -101,17 +127,24 @@ GOOGLE_BOOKS_API_KEY=tu_clave_api_aqui
 backend/
 ├── node_modules/          # Dependencias instaladas
 ├── src/
-│   ├── app.js             # Configuración principal de Express
+│   ├── config/            # ⭐ NUEVO - Configuraciones
+│   │   └── corsOptions.js
 │   ├── controllers/
 │   │   └── booksController.js    # Lógica de controladores
+│   ├── middlewares/       # ⭐ NUEVO - Middlewares personalizados
+│   │   ├── cache.js              # Cache en memoria
+│   │   ├── rateLimiter.js        # Rate limiting
+│   │   └── validators.js         # Validaciones de inputs
 │   ├── routes/
 │   │   └── booksRoutes.js        # Definición de rutas
-│   └── services/
-│       └── googleBookService.js   # Servicio para Google Books API
-├── server.js               # Punto de entrada del servidor
-├── package.json            # Configuración del proyecto
-├── package-lock.json       # Lock de dependencias
-└── .env                    # Variables de entorno (crear manualmente)
+│   ├── services/
+│   │   └── googleBookService.js  # Servicio para Google Books API
+│   └── app.js             # Configuración principal de Express
+├── server.js              # Punto de entrada del servidor
+├── package.json           # Configuración del proyecto
+├── BEST_PRACTICES.md      # ⭐ NUEVO - Guía completa de mejoras
+├── ENV_VARIABLES.md       # ⭐ NUEVO - Documentación de variables
+└── .env                   # Variables de entorno (crear manualmente)
 ```
 
 ### Descripción de Archivos
@@ -366,7 +399,31 @@ GET http://localhost:3000/api/books/isbn/9780596517748
 
 ---
 
-### 6. Ruta de Bienvenida
+### 6. Health Check
+
+Endpoint para monitoreo y verificación de estado del servidor.
+
+**Endpoint:**
+```
+GET /health
+```
+
+**Ejemplo de Petición:**
+```bash
+GET http://localhost:3000/health
+```
+
+**Respuesta Exitosa (200):**
+```json
+{
+  "success": true,
+  "status": "UP",
+  "timestamp": "2024-01-15T10:30:00.000Z",
+  "uptime": 3600.5
+}
+```
+
+### 7. Ruta de Bienvenida
 
 Información general sobre la API y sus endpoints disponibles.
 
@@ -383,13 +440,35 @@ GET http://localhost:3000/
 **Respuesta Exitosa (200):**
 ```json
 {
-  "message": "Bienvenido a la API de libros",
-  "endpoint": {
-    "search": "/api/books/search",
-    "getBookById": "/api/books/:id",
-    "searchByAuthor": "/api/books/author",
-    "searchByCategory": "/api/books/category",
-    "searchByISBN": "/api/books/isbn/:isbn"
+  "success": true,
+  "message": "Bienvenido a Booklify API - API de libros",
+  "version": "1.0.0",
+  "documentation": "https://developers.google.com/books",
+  "endpoints": {
+    "search": {
+      "url": "/api/books/search",
+      "method": "GET",
+      "params": "q (requerido), maxResults, startIndex"
+    },
+    "getBookById": {
+      "url": "/api/books/:id",
+      "method": "GET"
+    },
+    "searchByAuthor": {
+      "url": "/api/books/author",
+      "method": "GET",
+      "params": "author (requerido), maxResults"
+    },
+    "searchByCategory": {
+      "url": "/api/books/category",
+      "method": "GET",
+      "params": "category (requerido), maxResults"
+    },
+    "searchByISBN": {
+      "url": "/api/books/isbn/:isbn",
+      "method": "GET",
+      "params": "maxResults"
+    }
   }
 }
 ```
@@ -494,10 +573,25 @@ La API utiliza códigos de estado HTTP estándar para indicar el resultado de la
 
 ### Ejemplos de Errores
 
-**Error 400 - Parámetro faltante:**
+**Error 400 - Parámetro faltante (con express-validator):**
 ```json
 {
-  "error": "El parametro q es requerido"
+  "success": false,
+  "errors": [
+    {
+      "field": "q",
+      "message": "El parámetro q es requerido",
+      "value": ""
+    }
+  ]
+}
+```
+
+**Error 429 - Too Many Requests (Rate Limit):**
+```json
+{
+  "success": false,
+  "error": "Demasiadas peticiones desde esta IP, por favor intenta de nuevo más tarde."
 }
 ```
 
@@ -521,10 +615,26 @@ La API utiliza códigos de estado HTTP estándar para indicar el resultado de la
 
 ## 🛠️ Tecnologías Utilizadas
 
+### Core
 - **Node.js**: Entorno de ejecución de JavaScript
 - **Express.js**: Framework web minimalista y flexible
 - **Axios**: Cliente HTTP basado en promesas
 - **dotenv**: Gestión de variables de entorno
+
+### Seguridad
+- **Helmet**: Protección de headers HTTP
+- **CORS**: Control de orígenes permitidos
+- **express-validator**: Validación y sanitización de inputs
+- **express-rate-limit**: Prevención de abuso y DDoS
+
+### Rendimiento
+- **compression**: Compresión Gzip de respuestas
+- **node-cache**: Sistema de cache en memoria
+
+### Monitoreo
+- **morgan**: Logging HTTP
+
+### Desarrollo
 - **nodemon**: Herramienta de desarrollo para recarga automática
 
 ### Versiones
@@ -536,11 +646,32 @@ Las versiones específicas se pueden consultar en `package.json`:
 
 ---
 
-## 🚀 Mejoras Opcionales
+## 📚 Documentación Adicional
 
-Después de haber finalizado la configuración inicial de la API, puedes considerar implementar las siguientes mejoras para hacer tu API más robusta, escalable y profesional:
+Para más información sobre las mejores prácticas implementadas, consulta la carpeta `docs/`:
 
-### 1. Agregar Caché con Redis
+- **[QUICK_START.md](./docs/QUICK_START.md)** - Guía rápida de inicio (5 minutos)
+- **[BEST_PRACTICES.md](./docs/BEST_PRACTICES.md)** - Guía completa de seguridad, rendimiento y arquitectura
+- **[RESUMEN_MEJORAS.md](./docs/RESUMEN_MEJORAS.md)** - Comparativa antes/después de las mejoras
+- **[RESUMEN_FINAL.md](./docs/RESUMEN_FINAL.md)** - Resumen ejecutivo de la implementación
+- **[IMPLEMENTACION_COMPLETA.md](./docs/IMPLEMENTACION_COMPLETA.md)** - Checklist completo de implementación
+- **[ENV_VARIABLES.md](./docs/ENV_VARIABLES.md)** - Documentación de variables de entorno
+- **[PRUEBAS_REALIZADAS.md](./docs/PRUEBAS_REALIZADAS.md)** - Reporte de pruebas ejecutadas
+
+---
+
+## 🚀 Mejoras Futuras
+
+La API ya incluye las siguientes mejoras implementadas:
+- ✅ Cache en memoria (Node-Cache)
+- ✅ Rate Limiting
+- ✅ Validación con express-validator
+- ✅ Compresión Gzip
+- ✅ Seguridad con Helmet
+
+Próximas mejoras recomendadas:
+
+### 1. Migrar Caché a Redis
 
 **Descripción:** Implementar un sistema de caché con Redis para almacenar resultados de búsquedas frecuentes y reducir el número de llamadas a la API de Google Books.
 

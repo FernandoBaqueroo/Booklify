@@ -1,14 +1,10 @@
 const googleBookService = require('../services/googleBookService');
 
 const booksController = {
-    searchBooks: async (req, res) => {
+    searchBooks: async (req, res, next) => {
         try {
             const {q, maxResults = 10, startIndex = 0} = req.query;
-
-            if (!q) {
-                return res.status(400).json({ error: 'El parametro q es requerido' });
-            }
-
+            
             const data = await googleBookService.searchBooks(q, maxResults, startIndex);
             res.json({
                 success: true,
@@ -19,33 +15,28 @@ const booksController = {
 
         } catch (error) {
             console.error('Error en searchBooks controller:', error.message);
-            res.status(500).json({ 
-                success: false, 
-                error: 'Error al buscar libros',
-                message: process.env.NODE_ENV === 'development' ? error.message : undefined
-            });
+            next(error); // Delegar al manejador central de errores
         }
     },
 
-    getBookById: async (req, res) => {
+    getBookById: async (req, res, next) => {
         try {
             const {id} = req.params;
+            
             const data = await googleBookService.getBookById(id);
             res.json({
                 success: true,
                 book: data,
             });
         } catch (error) {
-            res.status(500).json({ success: false, error: 'Error al obtener libro por ID'});
+            console.error('Error en getBookById controller:', error.message);
+            next(error);
         }
     },
 
-    searchByAuthor: async (req, res) => {
+    searchByAuthor: async (req, res, next) => {
         try {
             const {author, maxResults = 10} = req.query;
-            if (!author) {
-                return res.status(400).json({ error: 'El parametro author es requerido' });
-            }
 
             const data = await googleBookService.searchBooksByAuthor(author, maxResults);
             res.json({
@@ -56,20 +47,13 @@ const booksController = {
             });  
         } catch (error) {
             console.error('Error en searchByAuthor controller:', error.message);
-            res.status(500).json({ 
-                success: false, 
-                error: 'Error al buscar libros por autor',
-                message: process.env.NODE_ENV === 'development' ? error.message : undefined
-            });
+            next(error);
         }
     },
 
-    searchByCategory: async (req, res) => {
+    searchByCategory: async (req, res, next) => {
         try {
             const {category, maxResults = 10} = req.query;
-            if (!category) {
-                return res.status(400).json({ error: 'El parametro category es requerido' });
-            }
 
             const data = await googleBookService.searchBooksByCategory(category, maxResults);
             res.json({
@@ -80,21 +64,14 @@ const booksController = {
             });
         } catch (error) {
             console.error('Error en searchByCategory controller:', error.message);
-            res.status(500).json({ 
-                success: false, 
-                error: 'Error al buscar libros por categoría',
-                message: process.env.NODE_ENV === 'development' ? error.message : undefined
-            });
+            next(error);
         }
     },
 
-    searchByISBN: async (req, res) => {
+    searchByISBN: async (req, res, next) => {
         try {
             const {isbn} = req.params;
             const {maxResults = 10} = req.query;
-            if (!isbn) {
-                return res.status(400).json({ error: 'El parametro isbn es requerido' });
-            }   
 
             const data = await googleBookService.searchBooksByISBN(isbn, maxResults);
             res.json({
@@ -105,11 +82,7 @@ const booksController = {
             });
         } catch (error) {
             console.error('Error en searchByISBN controller:', error.message);
-            res.status(500).json({ 
-                success: false, 
-                error: 'Error al buscar libros por ISBN',
-                message: process.env.NODE_ENV === 'development' ? error.message : undefined
-            });
+            next(error);
         }
     }
 };
