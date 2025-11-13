@@ -5,4 +5,16 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [tailwindcss(), react()],
+  server: {
+    host: '0.0.0.0', // Escucha en todas las interfaces de red
+    port: 5173,
+    strictPort: true,
+    hmr: {
+      clientPort: 5173,
+    },
+    // Permitir cualquier origen para desarrollo
+    cors: true,
+    // Permitir todos los hosts (incluyendo tunnelmole)
+    allowedHosts: ['.tunnelmole.net'],
+  }
 })
