@@ -2,6 +2,7 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import GradientText from '../TextTypes/GradientText';
+import CountUpText from '../TextTypes/CountUpText';
 
 const InfoHome = () => {
     const ref = useRef(null);
@@ -82,7 +83,7 @@ const InfoHome = () => {
                     >
                         <div className="absolute inset-0 bg-linear-to-br from-[#D6FB3F]/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                         <div className="relative z-10 space-y-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-linear-to-br from-[#D6FB3F] to-[#49E04A] flex items-center justify-center text-2xl sm:text-3xl shadow-lg shadow-[#D6FB3F]/50">
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center text-2xl sm:text-3xl border border-white/20">
                                 📚
                             </div>
                             <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
@@ -102,7 +103,7 @@ const InfoHome = () => {
                     >
                         <div className="absolute inset-0 bg-linear-to-br from-[#49E04A]/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                         <div className="relative z-10 space-y-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-linear-to-br from-[#49E04A] to-[#D9EE6B] flex items-center justify-center text-2xl sm:text-3xl shadow-lg shadow-[#49E04A]/50">
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center text-2xl sm:text-3xl border border-white/20">
                                 ⭐
                             </div>
                             <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
@@ -122,7 +123,7 @@ const InfoHome = () => {
                     >
                         <div className="absolute inset-0 bg-linear-to-br from-[#D9EE6B]/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                         <div className="relative z-10 space-y-4">
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-linear-to-br from-[#D9EE6B] to-[#D6FB3F] flex items-center justify-center text-2xl sm:text-3xl shadow-lg shadow-[#D9EE6B]/50">
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center text-2xl sm:text-3xl border border-white/20">
                                 📖
                             </div>
                             <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
@@ -163,34 +164,71 @@ const InfoHome = () => {
                     variants={containerVariants}
                     className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 pt-8 sm:pt-12 border-t border-white/10"
                 >
-                    {[
-                        { value: "40M+", label: "Libros Disponibles" },
-                        { value: "100%", label: "Gratis" },
-                        { value: "Google", label: "Powered by" },
-                        { value: "∞", label: "Búsquedas" }
-                    ].map((stat, index) => (
-                        <motion.div
-                            key={index}
-                            variants={itemVariants}
-                            className="text-center space-y-1 sm:space-y-2"
-                        >
-                            <motion.div
-                                initial={{ scale: 0 }}
-                                animate={isInView ? { scale: 1 } : { scale: 0 }}
-                                transition={{
-                                    delay: 1 + index * 0.1,
-                                    duration: 0.5,
-                                    ease: [0.25, 0.4, 0.25, 1]
-                                }}
-                                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-linear-to-r from-[#D6FB3F] to-[#49E04A] bg-clip-text text-transparent"
-                            >
-                                {stat.value}
-                            </motion.div>
-                            <p className="text-gray-500 text-xs sm:text-sm md:text-base font-medium">
-                                {stat.label}
-                            </p>
-                        </motion.div>
-                    ))}
+                    {/* Stat 1: Libros */}
+                    <motion.div
+                        variants={itemVariants}
+                        className="text-center space-y-1 sm:space-y-2"
+                    >
+                        <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-linear-to-r from-[#D6FB3F] to-[#49E04A] bg-clip-text text-transparent">
+                            <CountUpText
+                                from={0}
+                                to={40}
+                                duration={2.5}
+                                delay={0.5}
+                                className="inline"
+                            />
+                            <span>M+</span>
+                        </div>
+                        <p className="text-gray-500 text-xs sm:text-sm md:text-base font-medium">
+                            Libros Disponibles
+                        </p>
+                    </motion.div>
+
+                    {/* Stat 2: Gratis */}
+                    <motion.div
+                        variants={itemVariants}
+                        className="text-center space-y-1 sm:space-y-2"
+                    >
+                        <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-linear-to-r from-[#D6FB3F] to-[#49E04A] bg-clip-text text-transparent">
+                            <CountUpText
+                                from={0}
+                                to={100}
+                                duration={2}
+                                delay={0.6}
+                                className="inline"
+                            />
+                            <span>%</span>
+                        </div>
+                        <p className="text-gray-500 text-xs sm:text-sm md:text-base font-medium">
+                            Gratis
+                        </p>
+                    </motion.div>
+
+                    {/* Stat 3: Google */}
+                    <motion.div
+                        variants={itemVariants}
+                        className="text-center space-y-1 sm:space-y-2"
+                    >
+                        <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-linear-to-r from-[#D6FB3F] to-[#49E04A] bg-clip-text text-transparent">
+                            Google
+                        </div>
+                        <p className="text-gray-500 text-xs sm:text-sm md:text-base font-medium">
+                            Powered by
+                        </p>
+                    </motion.div>
+
+                    {/* Stat 4: Búsquedas */}
+                    <motion.div
+                        variants={itemVariants}
+                        className="text-center space-y-1 sm:space-y-2"
+                    >
+                        <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-linear-to-r from-[#D6FB3F] to-[#49E04A] bg-clip-text text-transparent">
+                            ∞
+                        </div>
+                        <p className="text-gray-500 text-xs sm:text-sm md:text-base font-medium">
+                            Búsquedas
+                        </p>
+                    </motion.div>
                 </motion.div>
             </motion.div>
 
